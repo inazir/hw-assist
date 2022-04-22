@@ -19,9 +19,14 @@ const onFormSubmit = ({ response } = {}) => {
       // The response includes the file ids in an array that we can flatten
       .reduce((a, b) => [...a, ...b], []);
 
-    if (files.length > 0) {                
-      // Each form response has a unique Id
-      const subfolderName = response.getId();
+    if (files.length > 0) {   
+      var form1 = FormApp.getActiveForm();     
+      formResponses = form1.getResponses(),
+      latestResponse = formResponses[form1.getResponses().length-1];
+      const itemResponses = latestResponse.getItemResponses(),
+      studentName = itemResponses[0].getResponse();          
+      // Each form response has a unique Timestamp
+      const subfolderName = studentName + '-' + response.getTimestamp();
       const parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
       const subfolder = parentFolder.createFolder(subfolderName);
       files.forEach((fileId) => {
