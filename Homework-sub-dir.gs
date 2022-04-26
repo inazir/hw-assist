@@ -26,7 +26,9 @@ const onFormSubmit = ({ response } = {}) => {
       const itemResponses = latestResponse.getItemResponses(),
       studentName = itemResponses[0].getResponse();          
       // Each form response has a unique Timestamp
-      const subfolderName = studentName + '-' + response.getTimestamp();
+      var formattedDate = Utilities.formatDate(response.getTimestamp(), "GMT", "dd-MM-yyyy_HH:mm:ss");
+      const subfolderName = studentName + '_' + formattedDate;
+      // const subfolderName = studentName;
       const parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
       const subfolder = parentFolder.createFolder(subfolderName);
       files.forEach((fileId) => {
