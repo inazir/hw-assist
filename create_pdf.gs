@@ -1,3 +1,25 @@
+function centerAllImagesInSlide(slideID) {
+ // Load the presentation
+ var presentation = SlidesApp.openById(slideID);
+
+ // Get the width and height of the presentation
+ var pageWidth = presentation.getPageWidth();
+ var pageHeight = presentation.getPageHeight();
+  // Load the slides in the presentation
+ var slides = presentation.getSlides();
+
+ // For each slide, center the images found on the slide
+ // Note: if a slide contains more than a single image, they will
+ // overlap when you center them.
+ slides.forEach(function(slide) {
+   var images = slide.getImages();
+   images.forEach(function(image) {
+     image.setLeft(pageWidth/2 -image.getWidth()/2);
+     image.setTop(pageHeight/2 - image.getHeight()/2);
+   });
+ });
+}
+
 function collectStudentsFile(folder,slide_Deck){
 
   var filesIter = folder.getFiles();
@@ -107,6 +129,8 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 
       var temp_slides_homwork = DriveApp.getFileById(slide_Deck.getId());
       folder.addFile(temp_slides_homwork);
+      centerAllImagesInSlide(slide_Deck.getId())
+
       slide_Deck.saveAndClose();
 
       //makde pdf
@@ -132,7 +156,7 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 
 function prepareHomweork()
  {
-  createHomeWorkPDF("স্কুল_01","tomonir@gmail.com");
-  createHomeWorkPDF("স্কুল_02","tomonir@gmail.com");
+  createHomeWorkPDF("স্কুল_01","kochikachar.bornomala.21c1b1@gmail.com");
+  //createHomeWorkPDF("স্কুল_02","secondschoolemailaddres");
 
  }
