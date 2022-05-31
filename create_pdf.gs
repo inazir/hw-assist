@@ -66,8 +66,8 @@ function sendEmail(class_name, file_id, to_address, log_msg)
 }
 
 function makeInitialSlides(class_name){
-  today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy")
-  var presentation_name = class_name + "_homework_" + today_date ;
+  var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy")
+  var presentation_name = class_name + "_homework_" + today_date;
   var templateId= "1H0ZS5nsc_a33MkgF5nHxnqZfbHsW0CZ7GX6dIoIR6WY"; //// Template location-> Kochikachar Bornomala/Designs and Media/KochikacaharBornomalaHomeWorkTemplate
   var template = SlidesApp.openById(templateId);
   var fileName = template.getName();
@@ -107,8 +107,16 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
     {
       var slide_Deck = makeInitialSlides(class_name);
       var subFolderIter= folder.getFolders();
-      var log_msg = "<HTML><BODY>"
-+" <BR> Below are the possible error message. Please consult the batch coordinator, if you don't understand them: <BR>";
+      var log_msg = "<HTML><BODY>"+"Dear Concerned, <BR>" 
++ "<BR>"
++ "Please find the homework file for this week in the attachment. <BR>"
++ "<BR>"
++ "Best regards,<BR>"
++ "Batch Coordinator <BR>"
++ "Kochikachar Bornomala Online School"
++ "<BR>"
++ "<BR>"
++"<BR>(There may be some error messages below. Please consult the batch coordinator, if you don't understand them.): <BR>";
 
       while (subFolderIter.hasNext())
       {
@@ -140,7 +148,8 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 
 function prepareHomweork()
  {
-  createHomeWorkPDF("স্কুল_02","kochikachar.bornomala.21c1b2@gmail.com");
-  //createHomeWorkPDF("স্কুল_02","secondschoolemailaddres");
-
+  //createHomeWorkPDF("স্কুল_01","kochikachar.bornomala.21c1b1@gmail.com");
+  //createHomeWorkPDF("স্কুল_02","kochikachar.bornomala.21c1b2@gmail.com");
+  //createHomeWorkPDF("স্কুল_03","kochikachar.bornomala.21c1b3@gmail.com");
+  createHomeWorkPDF("স্কুল_04","kochikachar.bornomala.22c1b4@gmail.com");
  }
