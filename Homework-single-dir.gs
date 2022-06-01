@@ -39,7 +39,7 @@ const onFormSubmit = ({ response } = {}) => {
       // Each form response has a unique Timestamp
       const subfolderName = studentName + '_' + 'homework';
 	  // Delete previously added homework folder before creating the new folder again.
-      deleteFolder(subfolderName);
+      // deleteFolder(subfolderName);
       const parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
       const subfolder = parentFolder.createFolder(subfolderName);
       files.forEach((fileId) => {
