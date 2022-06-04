@@ -22,7 +22,7 @@ function centerAllImagesInSlide(slideID) {
 
 function collectStudentsFile(folder,slide_Deck){
 
-  var log_msg = '';
+  var mail_body = '';
   var filesIter = folder.getFiles();
   while (filesIter.hasNext())
   {
@@ -36,8 +36,8 @@ function collectStudentsFile(folder,slide_Deck){
     try{
       new_slide.insertImage(file);
     } catch (e){
-      log_msg = log_msg + "\n" + folder +'  >> collectStudentsFile() yielded an error: ' + e + "\n";
-      console.error(log_msg);
+      mail_body = mail_body + "\n" + folder +'  >> collectStudentsFile() yielded an error: ' + e + "\n";
+      console.error(mail_body);
     }
   }
 
@@ -46,11 +46,11 @@ function collectStudentsFile(folder,slide_Deck){
   var text= shape.getText();
   const textRange = shape.getText();
   textRange.setText(folder.getName());
-  return log_msg;
+  return mail_body;
 }
 
 
-function sendEmail(class_name, file_id, to_address, log_msg)
+function sendEmail(class_name, file_id, to_address, mail_body)
 {
   var file = DriveApp.getFileById(file_id);
   var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy")
@@ -59,15 +59,15 @@ function sendEmail(class_name, file_id, to_address, log_msg)
   MailApp.sendEmail({
     to: to_address,
     subject: email_subject,
-    htmlBody: log_msg,
+    htmlBody: mail_body,
     attachments: [file.getAs(MimeType.PDF)]
   });
   Logger.log("An email has been set to " + to_address);
 }
 
-function makeInitialSlides(class_name){
+function makeInitialSlides(){
   var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy")
-  var presentation_name = class_name + "_homework_" + today_date;
+  var presentation_name = "homework_for_this_week";
   var templateId= "1H0ZS5nsc_a33MkgF5nHxnqZfbHsW0CZ7GX6dIoIR6WY"; //// Template location-> Kochikachar Bornomala/Designs and Media/KochikacaharBornomalaHomeWorkTemplate
   var template = SlidesApp.openById(templateId);
   var fileName = template.getName();
@@ -93,6 +93,19 @@ function makeInitialSlides(class_name){
  return newDeck;
 }
 
+function deleteFile(myFileName, myFolder) {
+  var allFiles, idToDLET, myFolder, rtrnFromDLET, thisFile;
+
+  allFiles = myFolder.getFilesByName(myFileName);
+
+  while (allFiles.hasNext()) {//If there is another element in the iterator
+    thisFile = allFiles.next();
+    idToDLET = thisFile.getId();
+    Logger.log('idToDLET: ' + idToDLET);
+    DriveApp.getFileById(idToDLET).setTrashed(true); 
+  };
+}
+
 function createHomeWorkPDF(class_name,email_address_tosend) {
   var dApp = DriveApp;
   var foldersIter = dApp.getFoldersByName(class_name);
@@ -105,9 +118,9 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 
     if (folder.getName()=="০৩_বাড়ির কাজ - জমা নেওয়া")
     {
-      var slide_Deck = makeInitialSlides(class_name);
+      var slide_Deck = makeInitialSlides();
       var subFolderIter= folder.getFolders();
-      var log_msg = "<HTML><BODY>"+"Dear Concerned, <BR>" 
+      var mail_body = "<HTML><BODY>"+"Dear Concerned, <BR>" 
 + "<BR>"
 + "Please find the homework file for this week in the attachment. <BR>"
 + "<BR>"
@@ -121,8 +134,8 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
       while (subFolderIter.hasNext())
       {
         var student_folder = subFolderIter.next();
-        log_msg += collectStudentsFile(student_folder,slide_Deck);
-        log_msg = log_msg + "<BR>" + "</BODY></HTML>"; 
+        mail_body += collectStudentsFile(student_folder,slide_Deck);
+        mail_body = mail_body + "<BR>" + "</BODY></HTML>"; 
       }
 
       var temp_slides_homwork = DriveApp.getFileById(slide_Deck.getId());
@@ -130,6 +143,8 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
       centerAllImagesInSlide(slide_Deck.getId())
 
       slide_Deck.saveAndClose();
+      // Delete last week homework pdf.
+      deleteFile("homework_for_this_week.pdf", folder);
 
       //makde pdf
       const id = temp_slides_homwork.getId();
@@ -138,18 +153,17 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 
       //delete slides 
       DriveApp.getFileById(id).setTrashed(true); 
-
       Logger.log (pdf.getId());
-
-      sendEmail(class_name, pdf.getId(),email_address_tosend, log_msg);
+      sendEmail(class_name, pdf.getId(),email_address_tosend, mail_body);
     }
   }
 }
 
 function prepareHomweork()
  {
-  //createHomeWorkPDF("স্কুল_01","kochikachar.bornomala.21c1b1@gmail.com");
-  //createHomeWorkPDF("স্কুল_02","kochikachar.bornomala.21c1b2@gmail.com");
+  createHomeWorkPDF("স্কুল_01","kochikachar.bornomala.21c1b1@gmail.com,tomonir@gmail.com,mailtoiqbalnazir@gmail.com,");
+  createHomeWorkPDF("স্কুল_02","kochikachar.bornomala.21c1b2@gmail.com,rqchoudhury@gmail.com,mailtoiqbalnazir@gmail.com,");
   //createHomeWorkPDF("স্কুল_03","kochikachar.bornomala.21c1b3@gmail.com");
-  createHomeWorkPDF("স্কুল_04","kochikachar.bornomala.22c1b4@gmail.com");
+  createHomeWorkPDF("স্কুল_04","kochikachar.bornomala.22c1b4@gmail.com,a.almamun.stgt@gmail.com,mailtoiqbalnazir@gmail.com,mail2shafiq@gmail.com");
+  //createHomeWorkPDF("স্কুল_04","mailtoiqbalnazir@gmail.com");
  }
