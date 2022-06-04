@@ -8,75 +8,45 @@
 - Current tirggers and execution logs are helpful for debugging.
 */
 
-//This function returns the child-folder or sub-folder with a given name under a parent-folder
-function getSubFolder(childFolderName, parentFolderName) {
-  var parentFolder, parentFolders;
-  var childFolder, childFolders;
-  // Gets FolderIterator for parentFolder
-  parentFolders = DriveApp.getFoldersByName(parentFolderName);
-  /* Checks if FolderIterator has Folders with given name
-  Assuming there's only a parentFolder with given name... */ 
-  while (parentFolders.hasNext()) {
-    parentFolder = parentFolders.next();
-  }
-  // If parentFolder is not defined it sets it to root folder
-  if (!parentFolder) { parentFolder = DriveApp.getRootFolder(); }
-  // Gets FolderIterator for childFolder
-  childFolders = parentFolder.getFoldersByName(childFolderName);
-  /* Checks if FolderIterator has Folders with given name
-  Assuming there's only a childFolder with given name... */ 
-  while (childFolders.hasNext()) {
-    childFolder = childFolders.next();
-  }
-  return childFolder;
-}
 
-//This function deletes all the folders with a given name.
-function deleteFolder(folderName) {
-  var folderToDelete = DriveApp.getFoldersByName(folderName).next();
+//This function deletes a folder with ID.
+function deleteFolderById(folderId) {
+  var folderToDelete = DriveApp.getFolderById(folderId);
   var returnedFolder = folderToDelete.setTrashed(true);
   Logger.log('returnedFolder is trashed: ' + returnedFolder.isTrashed());
-};
-
-
-// This funktion makes sure there's only single subfolder is created under a parent folder. The other subfolders with the same name (if exist) are deleted.
-function getSingleSubFolder(parentFolder, subfolderName) {
-  var parent_folder_name = parentFolder.getName();
-  Logger.log(parent_folder_name);
-  var subFolder = getSubFolder(subfolderName, parent_folder_name);
-  Logger.log("Subfolder is - " + subFolder);
-  if (subFolder === undefined) {
-    Logger.log("Folder is undefined, hence doesn't exist. Creating..")
-    parentFolder.createFolder(subfolderName);
-    Logger.log("Subfolder is - " + subFolder);
-  };
-  if (subFolder){
-    Logger.log('Folder exists! Deleting and creating again.. ');
-    deleteFolder(subFolder);
-    Logger.log('Creating again - ' + subFolder);
-    parentFolder.createFolder(subfolderName);
-    Utilities.sleep(2000)
+  if (returnedFolder.isTrashed()){
+    Logger.log("Success! Folder with the name '" + folderToDelete.getName() + "' is deleted.");
   }
-  var subFolder = getSubFolder(subfolderName, parent_folder_name);
-  return subFolder;
+  else{
+    Logger.log("Error! Folder with the name '" + folderToDelete.getName() + "' couldn't be deleted.");
+  }
+}
+
+// This funktion deletes the subfolder(s) with name under a parent folder.
+function deleteExistingSubFoldersWithName(parentFolderId, subfolderName) {
+  var subFolders =  DriveApp.getFolderById(parentFolderId).getFolders();
+  while (subFolders.hasNext()) {
+    subFolder = subFolders.next();
+    if (subFolder.getName() == subfolderName){
+      Logger.log('Subfolder exists! Deleting the subfolder with the name: ' + subFolder.getName());
+      deleteFolderById(subFolder.getId());
+    }
+  }
 }
 
 // This script creates sub-folder under the parent folder with id 'PARENT_FOLDER_ID' for each submission and
 // makes sure the files (homeworks) are uploaded to the corresponding sub-folder.
-const PARENT_FOLDER_ID = '1iIZz5DvyKUIuRX9lJ0dAwXHjlkCwhpfu';  // Folder location-> Kochikachar Bornomala/
-                                              //কচিকাচার বর্ণমালা-লেখাপড়া/স্কুল_০2/০৩_বাড়ির কাজ জমা নেয়া/Homework-main-folder
+const PARENT_FOLDER_ID = 'paste_parent_folder_ID_here';  // Folder location-> Kochikachar Bornomala/
+                                              //কচিকাচার বর্ণমালা-লেখাপড়া/স্কুল_০x/০৩_বাড়ির কাজ - জমা নেয়া
 
 const initialize = () => {
   const form = FormApp.getActiveForm();
-  Utilities.sleep(1000)
   ScriptApp.newTrigger('onFormSubmit').forForm(form).onFormSubmit().create();
 };
 
 const onFormSubmit = ({ response } = {}) => {
-      Utilities.sleep(1000)
   try {
     // Get a list of all files uploaded with the response
-    Utilities.sleep(500)
     const files = response.getItemResponses()
       // We are only interested in File Upload type of questions
       .filter((itemResponse) => itemResponse.getItem().getType().toString() === 'FILE_UPLOAD')
@@ -90,15 +60,16 @@ const onFormSubmit = ({ response } = {}) => {
       var latestResponse = formResponses[form1.getResponses().length-1];
       const itemResponses = latestResponse.getItemResponses();
       var studentName = itemResponses[0].getResponse();          
-      var subfolderName = studentName + '_' + 'homework';
+      var subfolderName = studentName + '_Homework';
       Logger.log("sub-folder name based on form response is - " + subfolderName);
       var parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
-      subfolder = getSingleSubFolder(parentFolder, subfolderName); // if subfolder exists, deleted and the created again
-      // var subfolder = parentFolder.createFolder(subfolderName);
+      deleteExistingSubFoldersWithName(PARENT_FOLDER_ID, subfolderName); // Existing subfolder(s) with the name is (are) deleted.
+      Logger.log("Subfolder is being created with the name: " + subfolderName);
+      var subfolder = parentFolder.createFolder(subfolderName);
+      Logger.log("Subfolder is created with the name: " + subfolder.getName());
       Utilities.sleep(1000)
       files.forEach((fileId) => {
         // Move each file into the custom folder
-        Utilities.sleep(500)
         Logger.log("File with the id '" + fileId + "' is being moved to the subfolder - " + subfolder);
         DriveApp.getFileById(fileId).moveTo(subfolder); // TOOD: this move is showing exception: https://stackoverflow.com/questions/63275685/how-to-move-a-folder-in-google-drive-using-google-apps-script
       });
