@@ -1,4 +1,5 @@
 function centerAllImagesInSlide(slideID) {
+ Logger.log("centerAllImagesInSlide function is in progress...");
  // Load the presentation
  var presentation = SlidesApp.openById(slideID);
 
@@ -21,7 +22,7 @@ function centerAllImagesInSlide(slideID) {
 }
 
 function collectStudentsFile(folder,slide_Deck){
-
+  Logger.log("collectStudentsFile function is in progress on the folder: " + folder.getName());
   var mail_body = '';
   var filesIter = folder.getFiles();
   while (filesIter.hasNext())
@@ -38,6 +39,7 @@ function collectStudentsFile(folder,slide_Deck){
     } catch (e){
       mail_body = mail_body + "\n" + folder +'  >> collectStudentsFile() yielded an error: ' + e + "\n";
       console.error(mail_body);
+      Logger.log(mail_body);
     }
   }
 
@@ -50,10 +52,10 @@ function collectStudentsFile(folder,slide_Deck){
 }
 
 
-function sendEmail(class_name, file_id, to_address, mail_body)
-{
+function sendEmail(class_name, file_id, to_address, mail_body){
+  Logger.log("sendEmail function is in progress...");
   var file = DriveApp.getFileById(file_id);
-  var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy")
+  var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy");
   var email_subject = "Homework for " + class_name + " on " + today_date ;
 
   MailApp.sendEmail({
@@ -66,7 +68,8 @@ function sendEmail(class_name, file_id, to_address, mail_body)
 }
 
 function makeInitialSlides(){
-  var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy")
+  Logger.log("makeInitialSlides function is in progress...");
+  var today_date = Utilities.formatDate(new Date(), "GMT+1", "dd-MM-yyyy");
   var presentation_name = "homework_for_this_week";
   var templateId= "1H0ZS5nsc_a33MkgF5nHxnqZfbHsW0CZ7GX6dIoIR6WY"; //// Template location-> Kochikachar Bornomala/Designs and Media/KochikacaharBornomalaHomeWorkTemplate
   var template = SlidesApp.openById(templateId);
@@ -94,6 +97,7 @@ function makeInitialSlides(){
 }
 
 function deleteFile(myFileName, myFolder) {
+  Logger.log("deleteFile function is in progress...");
   var allFiles, idToDLET, myFolder, rtrnFromDLET, thisFile;
 
   allFiles = myFolder.getFilesByName(myFileName);
@@ -101,23 +105,40 @@ function deleteFile(myFileName, myFolder) {
   while (allFiles.hasNext()) {//If there is another element in the iterator
     thisFile = allFiles.next();
     idToDLET = thisFile.getId();
-    Logger.log('idToDLET: ' + idToDLET);
     DriveApp.getFileById(idToDLET).setTrashed(true); 
   };
 }
 
+
+// deletes the folder, which is older than 7 days
+function deleteOldFolder(folder) {
+  var todayDate = new Date();
+  var folderCreationDate = folder.getDateCreated();
+  Logger.log("The folder '" + folder + "' was created on " + folderCreationDate);
+    // get milliseconds
+  var t1 = todayDate.getTime();
+  Logger.log("Today's date is " + t1);
+  var t2 = folderCreationDate.getTime();
+  Logger.log("folder Creation Date is " + t2);
+  var millisecondsIn7days = 8600000 * 7;
+  var diffInMilliseconds = t1 - t2;
+  if (diffInMilliseconds > millisecondsIn7days){
+    Logger.log("The folder '" + folder + "' is older than 7 days. Hence deleting...");
+    //folder.setTrashed(true);
+  }
+}
+
 function createHomeWorkPDF(class_name,email_address_tosend) {
+  Logger.log("Working on homework pdf creation for: " + class_name);
+  Logger.log("createHomeWorkPDF function is in progress...");
   var dApp = DriveApp;
   var foldersIter = dApp.getFoldersByName(class_name);
   var folder = foldersIter.next();
   var subFolderIter= folder.getFolders();
 
-  while (subFolderIter.hasNext())
-  {
+  while (subFolderIter.hasNext()){
     var folder = subFolderIter.next();
-
-    if (folder.getName()=="০৩_বাড়ির কাজ - জমা নেওয়া")
-    {
+    if (folder.getName()=="০৩_বাড়ির কাজ - জমা নেওয়া"){
       var slide_Deck = makeInitialSlides();
       var subFolderIter= folder.getFolders();
       var mail_body = "<HTML><BODY>"+"Dear Concerned, <BR>" 
@@ -131,9 +152,11 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 + "<BR>"
 +"<BR>(There may be some error messages below. Please consult the batch coordinator, if you don't understand them.): <BR>";
 
-      while (subFolderIter.hasNext())
-      {
+      while (subFolderIter.hasNext()){
         var student_folder = subFolderIter.next();
+        // delete folder older than 7 days
+        //deleteOldFolder(student_folder); // check miliseconds calcualtion again
+
         mail_body += collectStudentsFile(student_folder,slide_Deck);
         mail_body = mail_body + "<BR>" + "</BODY></HTML>"; 
       }
@@ -144,16 +167,20 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 
       slide_Deck.saveAndClose();
       // Delete last week homework pdf.
+      Logger.log("Deleting last week's homework pdf...");
       deleteFile("homework_for_this_week.pdf", folder);
 
-      //makde pdf
+      //make pdf
       const id = temp_slides_homwork.getId();
       const  blob = DriveApp.getFileById(id).getBlob();
+      Logger.log("Creating this week's homework pdf...");
       pdf = folder.createFile(blob); 
 
-      //delete slides 
+      //delete slides to make the template fresh again..
+      Logger.log("Deleting the slides from the default template..");
       DriveApp.getFileById(id).setTrashed(true); 
-      Logger.log (pdf.getId());
+
+      Logger.log("Sending email with homework pdf...");
       sendEmail(class_name, pdf.getId(),email_address_tosend, mail_body);
     }
   }
@@ -161,9 +188,10 @@ function createHomeWorkPDF(class_name,email_address_tosend) {
 
 function prepareHomweork()
  {
-  createHomeWorkPDF("স্কুল_01","kochikachar.bornomala.21c1b1@gmail.com,tomonir@gmail.com,mailtoiqbalnazir@gmail.com,");
-  createHomeWorkPDF("স্কুল_02","kochikachar.bornomala.21c1b2@gmail.com,rqchoudhury@gmail.com,mailtoiqbalnazir@gmail.com,");
-  //createHomeWorkPDF("স্কুল_03","kochikachar.bornomala.21c1b3@gmail.com");
-  createHomeWorkPDF("স্কুল_04","kochikachar.bornomala.22c1b4@gmail.com,a.almamun.stgt@gmail.com,mailtoiqbalnazir@gmail.com,mail2shafiq@gmail.com");
-  //createHomeWorkPDF("স্কুল_04","mailtoiqbalnazir@gmail.com");
+  // The email addresses are defined in the constants in Config.gs file.
+  createHomeWorkPDF("স্কুল_01",school_01_emails); // school_01_emails is a constant defined in a separete file called config.gs e.g. const school_01_emails = "info@kochikachar-bornomala.de,diponminhaz@gmail.com";
+  createHomeWorkPDF("স্কুল_02",school_02_emails);
+  createHomeWorkPDF("স্কুল_03",school_03_emails);
+  createHomeWorkPDF("স্কুল_04",school_04_emails);
+  createHomeWorkPDF("প্রিস্কুল_02",pre_school_02_emails);
  }
